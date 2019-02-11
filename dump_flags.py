@@ -10,16 +10,16 @@ class FlagsGenerator(object):
     def collect_page_flags(self, url):
         items = []
         for it in pyquery.PyQuery(url).find('#countries article'):
-            href = it.xpath('./h2/a/@href')[0] # type: str
             icon = it.xpath('./div/a/img/@src')[0] # type: str
+            abbr = p.basename(icon).split('.')[0] # type: str
             items.append(
                 {
-                    'id': p.basename(href),
+                    'id': ord(abbr[0]) << 8 | ord(abbr[1]),
                     'name': it.xpath('./h2/a/text()')[0],
-                    'link': self.url + href,
-                    'icon': icon,
-                    'size': [int(it.xpath('./div/a/img/@width')[0]), int(it.xpath('./div/a/img/@height')[0])],
-                    'abbr': p.basename(icon).split('.')[0]
+                    # 'link': self.url + it.xpath('./h2/a/@href')[0],
+                    # 'icon': icon,
+                    # 'size': [int(it.xpath('./div/a/img/@width')[0]), int(it.xpath('./div/a/img/@height')[0])],
+                    'abbr': abbr
                 }
             )
         return items
@@ -30,7 +30,11 @@ class FlagsGenerator(object):
         for a in cate.xpath('./div/a'):
             href = a.get('href')
             link = self.url + href
-            group.append({'id': p.basename(href), 'name': a.text, 'link': link})
+            group.append({
+                # 'id': p.basename(href),
+                'name': a.text,
+                # 'link': link
+            })
             data.append(self.collect_page_flags(url=link))
         return {'cate': group, 'data': data}
 
@@ -61,6 +65,12 @@ def main():
                 it = subs[i]
                 _it = _subs[i]
                 it['desc'] = _it['name']
+        _cate = _data.get('cate')
+        cate = data.get('cate')
+        for n in range(len(cate)):
+            it = cate[n]
+            it['desc'] = _cate[n]['name']
+
     print(json.dumps(foreign_data, ensure_ascii=False, indent=4))
 
 
